@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#FBF8FF">
+<title>Arcade Bem Viver • ExpoTEA</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <!-- Fundo estático: formas orgânicas suaves + marca d'água do símbolo -->
+  <div id="bg" aria-hidden="true">
+    <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+      <path d="M-40 -30H470C520 90 450 210 330 250 210 292 90 262 -40 340Z" fill="#E90370" opacity=".09"/>
+      <path d="M1180 -20H1650V380C1560 330 1470 360 1400 300 1310 225 1330 110 1180 -20Z" fill="#1FC3EE" opacity=".13"/>
+      <path d="M-40 650C80 600 190 640 260 700 340 770 440 790 540 830L600 940H-40Z" fill="#F7AF05" opacity=".14"/>
+      <path d="M1100 940C1130 820 1230 780 1330 800 1430 820 1500 760 1650 700V940Z" fill="#8DC63F" opacity=".16"/>
+      <circle cx="800" cy="450" r="330" fill="#9B3FC0" opacity=".035"/>
+    </svg>
+    <img class="bg-mark" src="assets/img/bv-symbol.png" alt="">
+  </div>
+
+  <!-- 1. TELA INICIAL -->
+  <section id="home" class="screen active">
+    <div class="home-top">
+      <button class="btn-sound round" type="button" aria-label="Som ligado/desligado"></button>
+      <div class="expo">
+        <small>Bem Viver na</small>
+        <span class="expo-badge"><img src="assets/img/expotea.jpg" alt="ExpoTEA"></span>
+      </div>
+    </div>
+
+    <div class="home-left">
+      <img class="home-logo" src="assets/img/bv-logo.png" alt="Clínica Bem Viver">
+      <div class="home-copy">
+        <span class="tag">Arcade interativo</span>
+        <h1>Vamos brincar?</h1>
+        <p>4 jogos para se divertir, <b>no seu ritmo</b>.</p>
+      </div>
+      <button id="btn-play" class="btn btn-giant btn-pink" type="button"></button>
+      <p class="hint">É só tocar na tela</p>
+    </div>
+
+    <div class="home-right" aria-hidden="true">
+      <div class="tiles" id="home-tiles"></div>
+    </div>
+  </section>
+
+  <!-- 2. SELEÇÃO DE JOGOS -->
+  <section id="select" class="screen">
+    <header class="sel-head">
+      <button id="btn-home" class="btn btn-sm btn-ghost" type="button"></button>
+      <h2><img class="h-mark" src="assets/img/bv-symbol.png" alt="">Escolha um jogo</h2>
+      <div class="head-right">
+        <button class="btn-sound round" type="button" aria-label="Som ligado/desligado"></button>
+        <div class="chip chip-total"><span class="chip-ic" id="sel-ic"></span><div><small>Pontos</small><b id="sel-total">0</b></div></div>
+      </div>
+    </header>
+    <div class="progress-row">
+      <div class="medals" id="medals"></div>
+      <div class="progress-text" id="progress-text"></div>
+    </div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <!-- 3. TELA DO JOGO -->
+  <section id="game" class="screen">
+    <header class="hud">
+      <div class="hud-left">
+        <button id="btn-exit" class="btn btn-sm btn-ghost" type="button"></button>
+        <button id="btn-restart" class="btn btn-sm btn-ghost" type="button"></button>
+      </div>
+      <div class="hud-title"><span class="hud-art" id="hud-art"></span><b id="hud-name"></b></div>
+      <button class="btn-sound round" type="button" aria-label="Som ligado/desligado"></button>
+      <div class="chip"><span class="chip-ic" id="hud-clock"></span><div><small>Tempo</small><b id="hud-time">0:00</b></div></div>
+      <div class="chip chip-score"><span class="chip-ic" id="hud-star"></span><div><small>Pontos</small><b id="hud-score">0</b></div></div>
+    </header>
+    <div class="stage-wrap">
+      <div id="stage" class="stage"></div>
+      <div id="overlay" class="overlay"></div>
+    </div>
+  </section>
+
+  <!-- 4. RESULTADO -->
+  <section id="result" class="screen">
+    <div class="res-card">
+      <div class="res-left">
+        <div class="res-mascot" id="res-mascot"></div>
+        <div class="res-title" id="res-title">Fim de jogo!</div>
+        <div class="stars" id="res-stars"></div>
+        <div class="res-score"><small>Você fez</small><b id="res-score">0</b><small>pontos</small></div>
+      </div>
+      <div class="res-right">
+        <div class="res-stats" id="res-stats"></div>
+        <div class="res-msg" id="res-msg"></div>
+        <div class="res-session" id="res-session"></div>
+        <div class="res-buttons">
+          <button id="btn-again" class="btn btn-big btn-game" type="button"></button>
+          <button id="btn-other" class="btn btn-big btn-ghost" type="button"></button>
+        </div>
+      </div>
+      <aside class="promo" aria-label="Instagram da Bem Viver">
+        <div class="promo-title">Retire seu brinde!</div>
+        <div class="promo-qr"><img src="assets/img/qr-instagram.svg" alt="QR code do Instagram @bemvivercbv"></div>
+        <div class="promo-text">Aponte a câmera do celular</div>
+        <div class="promo-handle">@bemvivercbv</div>
+      </aside>
+    </div>
+  </section>
+
+  <div id="idle" class="idle">
+    <div class="idle-box">
+      <div class="idle-mascot" id="idle-mascot"></div>
+      <div>
+        <h3>Você ainda está aí?</h3>
+        <p>Toque na tela para continuar.<br>Voltando ao início em <b id="idle-count">15</b>s</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="rotate" class="rotate"><div><span class="rot-ic" id="rot-ic"></span><p>Gire a tela para o modo paisagem</p></div></div>
+  <canvas id="fx"></canvas>
+</div>
+
+<script src="js/core.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/games/memory.js"></script>
+<script src="js/games/dots.js"></script>
+<script src="js/games/flappy.js"></script>
+<script src="js/games/reflex.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
