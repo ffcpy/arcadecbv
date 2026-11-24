@@ -1,6 +1,20 @@
 # Arcade Bem Viver • ExpoTEA — totem touchscreen
 
-4 mini games em HTML/CSS/JS puro. Sem backend, sem build, sem dependências, sem internet.
+5 mini games em HTML/CSS/JS puro. Sem build, sem dependências, sem internet. Cadastro (nome + telefone) na entrada e Roleta da Sorte com brinde.
+
+## Cadastro e leads
+- Ao tocar em "Começar" o visitante preenche **nome e telefone** (teclado na tela) antes de ver os jogos.
+- Com `npm start`, cada cadastro e cada resultado de jogo é gravado em `data/leads.csv` (datahora, evento, nome, telefone, detalhe). A pasta `data/` nunca é servida pelo navegador e está no `.gitignore`.
+- Uma cópia fica no navegador (localStorage); se o servidor estiver fora, os registros ficam na fila e são reenviados depois. Abrindo `index.html` direto, só há a cópia local: **Ctrl+Shift+L** baixa o CSV.
+
+## Fluxo por visitante
+- Ao fim de cada partida aparece o resultado com o botão **Próximo jogador** (volta sozinho após 12 s, `NEXT_SECS` em `js/app.js`): a sessão é zerada e a tela de cadastro (nome + telefone) reaparece para a próxima pessoa.
+- Jogo da Memória: cartas com Bem Viver, ExpoTEA, mascote, sol, peça de quebra-cabeça do autismo + coração, estrela e flor.
+
+## Roleta da Sorte
+- 3 figuras iguais na linha = brinde. Figuras: símbolo Bem Viver, ExpoTEA, mascote, sol e a **peça de quebra-cabeça do autismo**.
+- Ajustes no topo de `js/games/roulette.js`: `ATTEMPTS` (giros por visitante, padrão 3), `WIN_CHANCE` (chance por giro, padrão 0,35 ≈ 72% dos visitantes ganham), `NEAR_MISS`.
+- O limite de tentativas vale para a sessão inteira (sair e voltar não devolve giros). O evento `roulette` no CSV traz `brinde=sim/nao`.
 
 ## Executar
 ```
@@ -27,4 +41,5 @@ O toque em "JOGAR AGORA" também pede tela cheia ao navegador.
 ## Ajustes rápidos
 - Inatividade: `IDLE_WARN` / `IDLE_RESET` no topo de `js/app.js`
 - Duração: `TOTAL_TIME` (dots.js), `DURATION` (reflex.js)
+- `js/leads.js` (coleta) · `js/signup.js` (cadastro) · `js/games/roulette.js` (roleta)
 - Para adicionar um jogo: crie o arquivo, registre em `Arcade.games` e inclua o id em `Arcade.order` (core.js) + `<script>` no index.html

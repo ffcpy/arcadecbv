@@ -7,7 +7,7 @@
   const IDLE_WARN = 45; // s sem toque até o aviso
   const IDLE_RESET = 60; // s sem toque até voltar ao início
 
-  const screens = { home: $('#home'), select: $('#select'), game: $('#game'), result: $('#result') };
+  const screens = { home: $('#home'), signup: $('#signup'), select: $('#select'), game: $('#game'), result: $('#result') };
   const stage = $('#stage');
   const overlay = $('#overlay');
   const hudScore = $('#hud-score');
@@ -15,7 +15,7 @@
   let current = 'home';
 
   /* Sessão: existe só em memória */
-  const session = { total: 0, best: {}, plays: {} };
+  const session = { total: 0, best: {}, plays: {}, lead: null, roulette: null };
   const run = { id: null, ctrl: null, token: 0 };
 
   function show(name) {
@@ -65,6 +65,7 @@
   function playedCount() {
     return A.order.filter((id) => session.plays[id] > 0).length;
   }
+  const T = A.order.length;
   function renderSelect() {
     $('#sel-total').textContent = session.total;
     const n = playedCount();
@@ -72,19 +73,20 @@
       .map((id) => `<span class="medal ${session.plays[id] ? 'on' : ''}" style="${paintStyle(A.games[id])}">${session.plays[id] ? A.art[id] : '?'}</span>`)
       .join('');
     $('#progress-text').innerHTML =
-      n === 0 ? 'Experimente os <b>4 jogos</b> e vire <b>Mestre do Arcade</b>!' :
-      n < 4 ? `<b>${n} de 4</b> jogos explorados — faltam ${4 - n}!` :
+      n === 0 ? `Experimente os <b>${T} jogos</b> e vire <b>Mestre do Arcade</b>!` :
+      n < T ? `<b>${n} de ${T}</b> jogos explorados — faltam ${T - n}!` :
       '<b>Mestre do Arcade!</b> Que tal bater seus recordes?';
     $('#cards').innerHTML = A.order
       .map((id) => {
         const g = A.games[id];
         const played = session.plays[id] > 0;
-        return `<button class="card-game" type="button" data-id="${id}" style="${paintStyle(g)}">
+        const locked = !!(g.locked && g.locked(session));
+        return `<button class="card-game ${locked ? 'locked' : ''}" type="button" data-id="${id}" style="${paintStyle(g)}">
           ${played ? `<span class="badge ok">${A.icon('check')}Jogado</span>` : '<span class="badge new">Novo</span>'}
           <span class="cg-art">${A.art[id]}</span>
           <span class="cg-title">${g.title}</span>
           <span class="cg-desc">${g.desc}</span>
-          <span class="cg-cta">${played ? `${A.icon('star')}Recorde <b>${session.best[id]}</b>` : `${A.icon('play')}Jogar`}</span>
+          <span class="cg-cta">${locked ? `${A.icon('gift')}${g.lockedLabel(session)}` : played ? `${A.icon('star')}Recorde <b>${session.best[id]}</b>` : `${A.icon('play')}Jogar`}</span>
         </button>`;
       })
       .join('');
@@ -93,6 +95,7 @@
     const b = e.target.closest('.card-game');
     if (!b) return;
     A.sfx.play('tap');
+    if (b.classList.contains('locked')) return;
     startGame(b.dataset.id, false);
   });
 
@@ -120,6 +123,8 @@
     let done = false;
     return {
       sfx: A.sfx, fx: A.fx, util: A.util,
+      session,
+      get lead() { return session.lead; },
       setScore,
       setTime(txt, warn) {
         hudTime.textContent = txt;
@@ -154,6 +159,7 @@
     hudTime.textContent = g.countdownStart || '0:00';
     hudTime.classList.remove('warn');
     stage.className = 'stage s-' + id;
+    $('#btn-restart').hidden = !!g.noRestart;
     show('game');
     run.ctrl = g.create(stage, makeApi(token, id));
 
@@ -209,13 +215,13 @@
     2: ['Muito bem! Quase perfeito!', 'Mandou bem demais!', 'Show! Dá para ir ainda mais longe!'],
     1: ['Bom começo! Que tal mais uma vez?', 'Você consegue mais! Tente de novo.', 'Aquecimento feito! Vamos de novo?'],
   };
-  let lastPlayed = null;
+  const NEXT_SECS = 12; // s na tela de resultado antes de voltar ao cadastro
+  let nextTimer = 0;
 
   function showResult(id, res) {
     const g = A.games[id];
     const score = Math.max(0, Math.round(res.score));
     const stars = res.stars || 1;
-    lastPlayed = id;
     session.total += score;
     session.plays[id] = (session.plays[id] || 0) + 1;
     const newRecord = score > (session.best[id] || 0);
@@ -232,16 +238,20 @@
       .map((s) => `<div><small>${s.label}</small><b>${s.value}</b></div>`)
       .join('');
     const msgs = MSGS[stars];
-    $('#res-msg').textContent = (newRecord && session.plays[id] > 1 ? 'Novo recorde! ' : '') + msgs[Math.floor(Math.random() * msgs.length)];
+    $('#res-msg').textContent = res.msg || (newRecord && session.plays[id] > 1 ? 'Novo recorde! ' : '') + msgs[Math.floor(Math.random() * msgs.length)];
+    A.leads.save(session.lead, id, res.detail || 'pontos=' + score);
 
-    const left = A.order.filter((k) => !session.plays[k]);
-    const all = left.length === 0;
-    $('#res-session').innerHTML = all
-      ? `<b>Mestre do Arcade!</b> Você jogou os 4 jogos • Total: <b>${session.total}</b> pontos`
-      : `Total da sessão: <b>${session.total}</b> pontos • Experimente também: <b>${A.games[left[0]].title}</b>`;
-    $('#btn-again').innerHTML = A.icon('restart') + 'Jogar de novo';
-    const other = $('#btn-other');
-    other.innerHTML = A.icon('grid') + (all ? 'Escolher jogo' : 'Outro jogo');
+    $('#res-session').innerHTML = `Obrigado por jogar! Total: <b>${score}</b> pontos`;
+    clearInterval(nextTimer);
+    let secs = NEXT_SECS;
+    const btnNext = $('#btn-next');
+    const paintNext = () => { btnNext.innerHTML = A.icon('play') + `Próximo jogador (${secs})`; };
+    paintNext();
+    nextTimer = setInterval(() => {
+      if (current !== 'result') { clearInterval(nextTimer); return; }
+      if (--secs <= 0) { nextPlayer(); return; }
+      paintNext();
+    }, 1000);
 
     show('result');
     // contagem animada da pontuação
@@ -255,11 +265,18 @@
     })(t0);
 
     A.sfx.play('win');
-    A.fx.confetti(stars === 3 || all ? 160 : stars === 2 ? 90 : 40);
+    A.fx.confetti(stars === 3 ? 160 : stars === 2 ? 90 : 40);
   }
 
-  $('#btn-again').addEventListener('click', () => { A.sfx.play('tap'); startGame(lastPlayed, true); });
-  $('#btn-other').addEventListener('click', () => { A.sfx.play('tap'); renderSelect(); show('select'); });
+  /* Fim da partida: zera a sessão e volta ao cadastro para o próximo visitante */
+  function nextPlayer() {
+    clearInterval(nextTimer);
+    stopGame();
+    session.total = 0; session.best = {}; session.plays = {}; session.lead = null; session.roulette = null;
+    A.signup.reset();
+    show('signup');
+  }
+  $('#btn-next').addEventListener('click', () => { A.sfx.play('tap'); nextPlayer(); });
 
   /* ---------- Início / sessão ---------- */
   function resetSession() {
@@ -267,6 +284,9 @@
     session.total = 0;
     session.best = {};
     session.plays = {};
+    session.lead = null;
+    session.roulette = null;
+    A.signup.reset();
     show('home');
   }
   function startFromHome() {
@@ -275,9 +295,19 @@
       const el = document.documentElement;
       if (!document.fullscreenElement && el.requestFullscreen) el.requestFullscreen({ navigationUI: 'hide' }).catch(() => {});
     } catch (e) {}
-    renderSelect();
-    show('select');
+    A.signup.reset();
+    show('signup');
   }
+  A.signup.setup({
+    onDone(lead) {
+      session.lead = lead;
+      A.leads.save(lead, 'cadastro');
+      A.sfx.play('good');
+      renderSelect();
+      show('select');
+    },
+    onBack() { resetSession(); },
+  });
   // a tela inicial inteira é um grande alvo de toque
   screens.home.addEventListener('click', () => { if (current === 'home') startFromHome(); });
   $('#btn-home').addEventListener('click', () => { A.sfx.play('tap'); resetSession(); });

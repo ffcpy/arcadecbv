@@ -25,6 +25,13 @@
     mute: '<path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z" fill="currentColor"/><path d="M16 9.5l5 5M21 9.5l-5 5"/>',
     grid: '<rect x="4" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.8"/>',
     check: '<path d="M5 12.5l4.5 4.5L19 7"/>',
+    /* peça de quebra-cabeça: símbolo de conscientização do autismo */
+    puzzle: '<path d="M6 6H9.6a2.6 2.6 0 1 1 4.8 0H18V9.6a2.6 2.6 0 1 1 0 4.8V18H14.4a2.6 2.6 0 1 0-4.8 0H6V14.4a2.6 2.6 0 1 0 0-4.8Z"/>',
+    user: '<circle cx="12" cy="8" r="3.6"/><path d="M5 20c0-4 3.2-6.2 7-6.2s7 2.2 7 6.2"/>',
+    phone: '<rect x="7" y="3" width="10" height="18" rx="2.4"/><path d="M11 18h2"/>',
+    backspace: '<path d="M9 5h11a1 1 0 011 1v12a1 1 0 01-1 1H9l-6-7z"/><path d="M12.5 9.5l5 5M17.5 9.5l-5 5"/>',
+    gift: '<rect x="4" y="10" width="16" height="10" rx="1.5"/><path d="M3 7h18v3H3zM12 7v13M12 7c-2-4-6-3-5 0M12 7c2-4 6-3 5 0"/>',
+    next: '<path d="M5 12h14"/><path d="M13 6l6 6-6 6"/>',
   };
   A.icon = (name, extra) =>
     `<svg class="ic ${extra || ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${L[name] || ''}</svg>`;
@@ -96,6 +103,31 @@
     <circle cx="80" cy="84" r="58" fill="${C.green}"/><circle cx="80" cy="84" r="43" fill="#fff"/>
     <circle cx="80" cy="84" r="29" fill="${C.green}"/><circle cx="80" cy="84" r="16" fill="#fff"/><circle cx="80" cy="84" r="8" fill="${C.pink}"/>
     ${rays(80, 84, 66, 76, 6, C.sun, 6).replace(/<line/g, '<line transform="rotate(15 80 84)"')}`);
+
+  /* ---------- Peça de quebra-cabeça (autismo) ---------- */
+  const PUZ = 'M20 20H38a13 13 0 1 1 24 0H80V38a13 13 0 1 1 0 24V80H62a13 13 0 1 0-24 0H20V62a13 13 0 1 0 0-24Z';
+  A.puzzle = (fill, cls) =>
+    svg('11 -7 96 96', `<path d="${PUZ}" fill="${fill}" stroke="${fill}" stroke-width="6" stroke-linejoin="round"/><ellipse cx="38" cy="38" rx="9" ry="5" fill="#fff" opacity=".35" transform="rotate(-35 38 38)"/>`, cls || '');
+
+  /* Roleta da Sorte: máquina com 3 peças iguais alinhadas */
+  const pz = (cx, cy) => `<path transform="translate(${cx - 24.8} ${cy - 17.2}) scale(.42)" d="${PUZ}" fill="${C.blue}" stroke="${C.blue}" stroke-width="5" stroke-linejoin="round"/>`;
+  A.art.roulette = svg('0 0 160 160', `
+    <polygon points="${starPts(80, 26, 17, 8, 5)}" fill="${C.sun}" stroke="${C.sun}" stroke-width="5" stroke-linejoin="round"/>
+    <rect x="12" y="46" width="136" height="86" rx="18" fill="${C.purple}"/>
+    <rect x="20" y="54" width="120" height="68" rx="12" fill="#fff"/>
+    <g fill="#F2E4FA"><rect x="26" y="60" width="32" height="56" rx="8"/><rect x="64" y="60" width="32" height="56" rx="8"/><rect x="102" y="60" width="32" height="56" rx="8"/></g>
+    ${pz(42, 88)}${pz(80, 88)}${pz(118, 88)}
+    <rect x="150" y="66" width="6" height="34" rx="3" fill="${C.sun}"/><circle cx="153" cy="62" r="9" fill="${C.pink}"/>
+    <rect x="28" y="130" width="104" height="12" rx="6" fill="#6B2088"/>`);
+
+  /* Figuras da roleta: marca Bem Viver, ExpoTEA e peça de quebra-cabeça do autismo */
+  A.reel = [
+    { id: 'puzzle', name: 'Peça de quebra-cabeça', html: A.puzzle(C.blue) },
+    { id: 'bv', name: 'Bem Viver', html: '<img src="assets/img/bv-symbol.png" alt="">' },
+    { id: 'expotea', name: 'ExpoTEA', html: '<span class="rs-expo"><img src="assets/img/expotea.jpg" alt=""></span>' },
+    { id: 'mascot', name: 'Mascote', html: '<img src="assets/img/mascot-flying.png" alt="">' },
+    { id: 'sun', name: 'Sol', html: A.art.sun },
+  ];
 
   /* Letreiro do jogo "Flappy" etc. usa as chaves acima; ids dos jogos = chaves de A.art */
 })();

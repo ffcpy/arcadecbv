@@ -1,7 +1,7 @@
 /* Núcleo compartilhado: áudio, partículas, utilitários e proteções de touch. */
 (function () {
   'use strict';
-  const Arcade = (window.Arcade = { games: {}, order: ['memory', 'dots', 'flappy', 'reflex'] });
+  const Arcade = (window.Arcade = { games: {}, order: ['memory', 'dots', 'flappy', 'reflex', 'roulette'] });
 
   /* Respeita a preferência de movimento reduzido do sistema operacional */
   const mq = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;

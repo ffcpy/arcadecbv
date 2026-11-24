@@ -2,7 +2,9 @@
 (function () {
   'use strict';
   const A = window.Arcade;
-  const PAIRS = [0, 1, 2, 3, 4, 5, 6, 7]; // índices de A.faces (formas ilustradas)
+  const PAIRS = [0, 1, 2, 3, 4, 5, 6, 7]; // índices de FACES
+  // Marcas (Bem Viver, ExpoTEA, mascote, sol), peça do autismo (A.reel) + 3 formas ilustradas
+  const FACES = () => A.reel.map((r) => r.html).concat([A.faces[0], A.faces[1], A.faces[3]]);
 
   A.games.memory = {
     id: 'memory',
@@ -14,12 +16,13 @@
 
     create(stage, api) {
       const U = api.util;
+      const faces = FACES();
       const deck = U.shuffle(PAIRS.concat(PAIRS));
       stage.innerHTML = `
         <div class="mem">
           <div class="mem-side"><span class="chip-ic">${A.icon('tap')}</span><small>Tentativas</small><b id="m-att">0</b></div>
           <div class="mem-board">${deck
-            .map((ic, i) => `<div class="mcard" data-i="${i}"><div class="mcard-in"><div class="mface mback"><span class="plate"><img src="assets/img/bv-symbol.png" alt=""></span></div><div class="mface mfront">${A.faces[ic]}</div></div></div>`)
+            .map((ic, i) => `<div class="mcard" data-i="${i}"><div class="mcard-in"><div class="mface mback"><span class="plate"><img src="assets/img/bv-symbol.png" alt=""></span></div><div class="mface mfront">${faces[ic]}</div></div></div>`)
             .join('')}</div>
           <div class="mem-side"><span class="chip-ic">${A.icon('check')}</span><small>Pares</small><b id="m-hit">0/8</b></div>
         </div>`;
