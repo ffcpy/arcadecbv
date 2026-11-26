@@ -38,10 +38,10 @@
       <div class="home-copy">
         <span class="tag">Arcade interativo</span>
         <h1>Vamos brincar?</h1>
-        <p>5 jogos para se divertir, <b>no seu ritmo</b>.</p>
+        <p>5 Games para se divertir, <b>no seu ritmo</b>.</p>
       </div>
       <button id="btn-play" class="btn btn-giant btn-pink" type="button"></button>
-      <p class="hint">É só tocar na tela</p>
+      <p class="hint">É só tocar no botão</p>
     </div>
 
     <div class="home-right" aria-hidden="true">
@@ -56,7 +56,7 @@
   <section id="select" class="screen">
     <header class="sel-head">
       <button id="btn-home" class="btn btn-sm btn-ghost" type="button"></button>
-      <h2><img class="h-mark" src="assets/img/bv-symbol.png" alt="">Escolha um jogo</h2>
+      <h2><img class="h-mark" src="assets/img/bv-symbol.png" alt="">Escolha uma experiência</h2>
       <div class="head-right">
         <button class="btn-sound round" type="button" aria-label="Som ligado/desligado"></button>
         <div class="chip chip-total"><span class="chip-ic" id="sel-ic"></span><div><small>Pontos</small><b id="sel-total">0</b></div></div>
@@ -87,7 +87,40 @@
     </div>
   </section>
 
-  <!-- 4. RESULTADO -->
+  <!-- 4. Roleta de brindes -->
+  <section id="prize" class="screen">
+    <div class="prize-card">
+      <header class="prize-heading">
+        <div class="prize-kicker">Fim de jogo!</div>
+        <h2>Gire a roleta de brindes</h2>
+      </header>
+      <div class="prize-layout">
+        <div class="wheel-stage">
+          <div class="wheel-pointer" aria-hidden="true"></div>
+          <div class="prize-wheel" id="prize-wheel" aria-label="Roleta com seis opções de brinde">
+            <span class="wheel-label"><span class="wheel-label-text">Copo<br>Personalizado</span></span>
+            <span class="wheel-label"><span class="wheel-label-text">Caneta</span></span>
+            <span class="wheel-label"><span class="wheel-label-text">Chaveiro<br>CBV</span></span>
+            <span class="wheel-label"><span class="wheel-label-text">Presilha<br>em Flor</span></span>
+            <span class="wheel-label"><span class="wheel-label-text">Botón</span></span>
+            <span class="wheel-label"><span class="wheel-label-text">Relógio</span></span>
+            <span class="wheel-hub" aria-hidden="true"><img src="assets/img/bv-symbol.png" alt=""></span>
+          </div>
+        </div>
+        <aside class="prize-side">
+          <img class="prize-bv-logo" src="assets/img/bv-logo.png" alt="Clínica Bem Viver">
+          <p class="prize-message">Acolha, compreenda,<br>celebre o que somos:<br><strong>Unicos!</strong></p>
+          <p class="prize-intro">Um presente especial está esperando por você.</p>
+          <div class="prize-result" id="prize-result" aria-live="polite">Toque para descobrir seu brinde!</div>
+          <button id="btn-prize-spin" class="btn btn-big btn-pink prize-spin" type="button">Girar roleta</button>
+          <button id="btn-prize-continue" class="btn btn-big btn-game prize-continue" type="button" hidden>Ver pontuação e Instagram</button>
+          <img class="prize-expo" src="assets/img/expotea.jpg" alt="ExpoTEA">
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. RESULTADO -->
   <section id="result" class="screen">
     <div class="res-card">
       <div class="res-left">
@@ -105,9 +138,9 @@
         </div>
       </div>
       <aside class="promo" aria-label="Instagram da Bem Viver">
-        <div class="promo-title">Retire seu brinde!</div>
+        <div class="promo-title">Siga a Bem Viver!</div>
         <div class="promo-qr"><img src="assets/img/qr-instagram.svg" alt="QR code do Instagram @bemvivercbv"></div>
-        <div class="promo-text">Aponte a câmera do celular</div>
+        <div class="promo-text">Siga a Bem Viver no Instagram</div>
         <div class="promo-handle">@bemvivercbv</div>
       </aside>
     </div>

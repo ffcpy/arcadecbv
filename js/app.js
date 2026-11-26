@@ -7,7 +7,7 @@
   const IDLE_WARN = 45; // s sem toque até o aviso
   const IDLE_RESET = 60; // s sem toque até voltar ao início
 
-  const screens = { home: $('#home'), signup: $('#signup'), select: $('#select'), game: $('#game'), result: $('#result') };
+  const screens = { home: $('#home'), signup: $('#signup'), select: $('#select'), game: $('#game'), prize: $('#prize'), result: $('#result') };
   const stage = $('#stage');
   const overlay = $('#overlay');
   const hudScore = $('#hud-score');
@@ -15,7 +15,7 @@
   let current = 'home';
 
   /* Sessão: existe só em memória */
-  const session = { total: 0, best: {}, plays: {}, lead: null, roulette: null };
+  const session = { total: 0, best: {}, plays: {}, lead: null, roulette: null, prize: null };
   const run = { id: null, ctrl: null, token: 0 };
 
   function show(name) {
@@ -73,8 +73,8 @@
       .map((id) => `<span class="medal ${session.plays[id] ? 'on' : ''}" style="${paintStyle(A.games[id])}">${session.plays[id] ? A.art[id] : '?'}</span>`)
       .join('');
     $('#progress-text').innerHTML =
-      n === 0 ? `Experimente os <b>${T} jogos</b> e vire <b>Mestre do Arcade</b>!` :
-      n < T ? `<b>${n} de ${T}</b> jogos explorados — faltam ${T - n}!` :
+      n === 0 ? `Experimente os <b>${T} brincadeiras</b> e vire <b>Mestre do Arcade</b>!` :
+      n < T ? `<b>${n} de ${T}</b> brincadeiras exploradas — faltam ${T - n}!` :
       '<b>Mestre do Arcade!</b> Que tal bater seus recordes?';
     $('#cards').innerHTML = A.order
       .map((id) => {
@@ -215,7 +215,7 @@
     2: ['Muito bem! Quase perfeito!', 'Mandou bem demais!', 'Show! Dá para ir ainda mais longe!'],
     1: ['Bom começo! Que tal mais uma vez?', 'Você consegue mais! Tente de novo.', 'Aquecimento feito! Vamos de novo?'],
   };
-  const NEXT_SECS = 12; // s na tela de resultado antes de voltar ao cadastro
+  const NEXT_SECS = 35; // tempo na tela de resultado antes do próximo visitante
   let nextTimer = 0;
 
   function showResult(id, res) {
@@ -241,38 +241,120 @@
     $('#res-msg').textContent = res.msg || (newRecord && session.plays[id] > 1 ? 'Novo recorde! ' : '') + msgs[Math.floor(Math.random() * msgs.length)];
     A.leads.save(session.lead, id, res.detail || 'pontos=' + score);
 
-    $('#res-session').innerHTML = `Obrigado por jogar! Total: <b>${score}</b> pontos`;
+    const prizeWheel = $('#prize-wheel');
+    const prizeButton = $('#btn-prize-spin');
+    const prizeResult = $('#prize-result');
+    const prizeContinue = $('#btn-prize-continue');
+    const prizes = ['Copo Personalizado', 'Caneta', 'Chaveiro CBV', 'Presilha em Flor', 'Botón', 'Relógio'];
+    prizeWheel.classList.remove('spinning', 'won');
+    prizeWheel.classList.add('resetting');
+    prizeWheel.style.transition = 'none';
+    prizeWheel.style.setProperty('--spin-angle', '0deg');
+    prizeWheel.style.setProperty('--counter-angle', '0deg');
+    prizeWheel.style.transform = '';
+    void prizeWheel.offsetWidth;
+    prizeWheel.classList.remove('resetting');
+    prizeWheel.style.removeProperty('transition');
+    prizeResult.classList.remove('revealed');
+    prizeButton.disabled = false;
+    prizeButton.hidden = false;
+    prizeContinue.hidden = true;
+    prizeResult.textContent = 'Toque para descobrir seu brinde!';
+    session.prize = null;
     clearInterval(nextTimer);
-    let secs = NEXT_SECS;
-    const btnNext = $('#btn-next');
-    const paintNext = () => { btnNext.innerHTML = A.icon('play') + `Próximo jogador (${secs})`; };
-    paintNext();
-    nextTimer = setInterval(() => {
-      if (current !== 'result') { clearInterval(nextTimer); return; }
-      if (--secs <= 0) { nextPlayer(); return; }
+    show('prize');
+
+    function showFinalResult() {
+      if (current !== 'prize') return;
+      $('#res-session').innerHTML = `Obrigado por participar! Total: <b>${score}</b> pontos` + (session.prize
+        ? `<div class="res-prize"><b>Você ganhou: ${session.prize}!</b><br>Fale com a equipe e retire seu brinde.</div>`
+        : '');
+      show('result');
+      clearInterval(nextTimer);
+      let secs = NEXT_SECS;
+      const btnNext = $('#btn-next');
+      const paintNext = () => { btnNext.innerHTML = A.icon('play') + `Próximo jogador (${secs})`; };
       paintNext();
-    }, 1000);
+      nextTimer = setInterval(() => {
+        if (current !== 'result') { clearInterval(nextTimer); return; }
+        if (--secs <= 0) { nextPlayer(); return; }
+        paintNext();
+      }, 1000);
 
-    show('result');
-    // contagem animada da pontuação
-    const el = $('#res-score');
-    const t0 = performance.now();
-    el.textContent = '0';
-    (function count(t) {
-      const k = Math.max(0, Math.min(1, (t - t0) / 900));
-      el.textContent = Math.round(score * (1 - Math.pow(1 - k, 3)));
-      if (k < 1 && current === 'result') requestAnimationFrame(count);
-    })(t0);
+      const el = $('#res-score');
+      const t0 = performance.now();
+      el.textContent = '0';
+      (function count(t) {
+        const k = Math.max(0, Math.min(1, (t - t0) / 900));
+        el.textContent = Math.round(score * (1 - Math.pow(1 - k, 3)));
+        if (k < 1 && current === 'result') requestAnimationFrame(count);
+      })(t0);
+      A.sfx.play('win');
+      A.fx.confetti(stars === 3 ? 160 : stars === 2 ? 90 : 40);
+    }
 
-    A.sfx.play('win');
-    A.fx.confetti(stars === 3 ? 160 : stars === 2 ? 90 : 40);
+    prizeButton.onclick = async () => {
+      if (session.prize) return;
+      const prizeLead = session.lead;
+      prizeButton.disabled = true;
+      prizeResult.textContent = 'Preparando seu sorteio…';
+      let draw;
+      try {
+        const response = await fetch('/api/prize/draw', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ t: new Date().toISOString() }),
+        });
+        draw = await response.json();
+        if (response.status === 409) {
+          prizeResult.innerHTML = '<b>Os brindes de hoje acabaram.</b><small>Fale com a equipe da Bem Viver.</small>';
+          prizeResult.classList.add('revealed');
+          prizeButton.hidden = true;
+          prizeContinue.hidden = false;
+          return;
+        }
+        if (!response.ok) throw new Error(draw.error || 'Falha ao sortear.');
+      } catch (e) {
+        prizeResult.textContent = 'Não foi possível sortear. Verifique a conexão e tente novamente.';
+        prizeButton.disabled = false;
+        return;
+      }
+      const prize = draw.prize;
+      const idx = prizes.indexOf(prize);
+      if (idx < 0) {
+        prizeResult.textContent = 'Brinde inválido retornado pelo servidor. Tente novamente.';
+        prizeButton.disabled = false;
+        return;
+      }
+      prizeWheel.classList.add('spinning');
+      A.sfx.play('go');
+      const rotation = 360 * 6 - idx * (360 / prizes.length);
+      prizeWheel.style.setProperty('--spin-angle', `${rotation}deg`);
+      prizeWheel.style.setProperty('--counter-angle', `${-rotation}deg`);
+      prizeWheel.style.transform = `rotate(${rotation}deg)`;
+      session.prize = prize;
+      setTimeout(() => {
+        prizeWheel.classList.remove('spinning');
+        prizeWheel.classList.add('won');
+        prizeResult.classList.add('revealed');
+        prizeResult.innerHTML = `Você ganhou <b>${prize}!</b><small>Fale com a equipe e retire seu brinde.</small>`;
+        prizeButton.hidden = true;
+        prizeContinue.hidden = false;
+        A.sfx.play('gold');
+        A.fx.confetti(90);
+        A.leads.save(prizeLead, 'brinde', `premio=${prize};jogo=${id}`);
+        setTimeout(showFinalResult, 6500);
+      }, 4200);
+    };
+    prizeContinue.onclick = () => { A.sfx.play('tap'); showFinalResult(); };
+
   }
 
   /* Fim da partida: zera a sessão e volta ao cadastro para o próximo visitante */
   function nextPlayer() {
     clearInterval(nextTimer);
     stopGame();
-    session.total = 0; session.best = {}; session.plays = {}; session.lead = null; session.roulette = null;
+    session.total = 0; session.best = {}; session.plays = {}; session.lead = null; session.roulette = null; session.prize = null;
     A.signup.reset();
     show('signup');
   }
@@ -286,6 +368,7 @@
     session.plays = {};
     session.lead = null;
     session.roulette = null;
+    session.prize = null;
     A.signup.reset();
     show('home');
   }
@@ -301,7 +384,7 @@
   A.signup.setup({
     onDone(lead) {
       session.lead = lead;
-      A.leads.save(lead, 'cadastro');
+    A.leads.save(lead, 'cadastro');
       A.sfx.play('good');
       renderSelect();
       show('select');

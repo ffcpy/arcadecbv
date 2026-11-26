@@ -185,7 +185,7 @@
           api.finish({
             score, stars: 3,
             title: nm ? `Parabéns, ${nm}!` : 'Parabéns!',
-            msg: 'Você ganhou um brinde! Mostre esta tela à equipe da Bem Viver para retirar.',
+            msg: 'Você ganhou um brinde! Fale com à equipe da Bem Viver para retirar.',
             stats: [
               { label: 'Resultado', value: '3 iguais!' },
               { label: 'Tentativas usadas', value: st.used + '/' + ATTEMPTS },

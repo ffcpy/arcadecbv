@@ -1,5 +1,5 @@
 /* Coleta de dados: guarda cadastros e resultados.
-   - Com servidor (npm start): envia para POST /api/lead  ->  data/leads.csv
+   - Com servidor (npm start): envia para POST /api/lead  ->  MySQL (or CSV fallback)
    - Sempre mantém cópia no navegador (localStorage); se o envio falhar, tenta de novo depois.
    - Atalho para a equipe: Ctrl+Shift+L baixa o CSV da cópia local. */
 (function () {
@@ -37,7 +37,7 @@
   A.leads = {
     save(lead, event, detail) {
       if (!lead) return;
-      const rec = { t: new Date().toISOString(), event, name: lead.name, phone: lead.phone, detail: detail || '' };
+      const rec = { t: new Date().toISOString(), event, name: lead.name, phone: lead.phone, city: lead.city || '', state: lead.state || '', detail: detail || '' };
       const log = read(LOG);
       log.push(rec);
       write(LOG, log.slice(-5000));
@@ -45,8 +45,8 @@
     },
     flush,
     csv() {
-      const head = ['datahora', 'evento', 'nome', 'telefone', 'detalhe'];
-      const rows = read(LOG).map((r) => [r.t, r.event, r.name, r.phone, r.detail].map(csvCell).join(','));
+      const head = ['datahora', 'evento', 'nome', 'telefone', 'cidade', 'estado', 'detalhe'];
+      const rows = read(LOG).map((r) => [r.t, r.event, r.name, r.phone, r.city, r.state, r.detail].map(csvCell).join(','));
       return '﻿' + [head.join(',')].concat(rows).join('\r\n');
     },
   };

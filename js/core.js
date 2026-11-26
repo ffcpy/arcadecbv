@@ -75,12 +75,55 @@
     step(n) { tone(420 + n * 38, 0.12, 'triangle', 0.1); },
   };
 
+  /* Trilha instrumental procedural, baixa e sem arquivos externos. */
+  let musicTimer = 0;
+  let musicStep = 0;
+  const melody = [523.25, 659.25, 783.99, 659.25, 440, 523.25, 659.25, 523.25,
+    349.23, 440, 523.25, 440, 392, 493.88, 587.33, 493.88];
+  const bass = [130.81, 110, 87.31, 98];
+  function musicNote(freq, duration, volume, type) {
+    if (!actx || muted) return;
+    try {
+      const t = actx.currentTime;
+      const osc = actx.createOscillator();
+      const gain = actx.createGain();
+      osc.type = type || 'sine';
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(volume, t + 0.035);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+      osc.connect(gain);
+      gain.connect(actx.destination);
+      osc.start(t);
+      osc.stop(t + duration + 0.04);
+    } catch (e) {}
+  }
+  function musicBeat() {
+    if (muted || !actx) return;
+    const beat = musicStep % melody.length;
+    musicNote(melody[beat], 0.32, 0.018, 'triangle');
+    if (beat % 4 === 0) musicNote(bass[Math.floor(beat / 4)], 1.45, 0.012, 'sine');
+    musicStep = (beat + 1) % melody.length;
+  }
+  function startMusic() {
+    ensureAudio();
+    if (muted || musicTimer || !actx) return;
+    musicStep = 0;
+    musicBeat();
+    musicTimer = setInterval(musicBeat, 480);
+  }
+  function stopMusic() {
+    if (musicTimer) clearInterval(musicTimer);
+    musicTimer = 0;
+  }
+
   Arcade.sfx = {
     unlock: ensureAudio,
     get muted() { return muted; },
-    setMuted(v) { muted = !!v; },
+    setMuted(v) { muted = !!v; if (muted) stopMusic(); else startMusic(); },
     play(name, arg) {
       ensureAudio();
+      if (!muted) startMusic();
       const f = SFX[name];
       if (f) f(arg);
     },
